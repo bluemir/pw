@@ -1,0 +1,93 @@
+package main
+
+import (
+	"os"
+
+	"github.com/codingconcepts/env"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/alecthomas/kingpin.v2"
+
+	"github.com/bluemir/todo/pkg/backend"
+)
+
+var VERSION string
+
+type Config struct {
+	LogLevel      int
+	InventoryFile string
+	OutputFormat  string
+	Expr          string
+	Template      string
+	Labels        map[string]string
+	Args          []string
+	ItemNames     []string
+}
+
+func main() {
+
+	conf := &Config{Labels: map[string]string{}}
+
+	if err := env.Set(conf); err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	cli := kingpin.New("todo", "main code")
+
+	cli.Flag("verbose", "Log level").Short('v').
+		CounterVar(&conf.LogLevel)
+
+	cli.Flag("inventory", "Inventory").Short('i').
+		PlaceHolder("$HOME/.inventory.yaml").Default(os.ExpandEnv("$HOME/.inventory.yaml")).
+		StringVar(&conf.InventoryFile)
+
+	run := cli.Command("run", "run command")
+	run.Flag("output", "display format(json, text, simple, detail or free format)").Short('o').
+		Default("name"). // wide,
+		StringVar(&conf.OutputFormat)
+	run.Flag("expr", "condition that filter items").Short('e').
+		StringVar(&conf.Expr)
+	run.Flag("templates", "running template").Short('t').
+		Default("default").
+		StringVar(&conf.Template)
+	run.Arg("args", "args to run").
+		StringsVar(&conf.Args)
+
+	set := cli.Command("set", "set item")
+	set.Flag("label", "labels").Short('l').
+		StringMapVar(&conf.Labels)
+	set.Arg("item", "items").Required().
+		StringsVar(&conf.ItemNames)
+
+	get := cli.Command("get", "Get item")
+	get.Flag("output", "item display format").
+		Default("name"). // name, yaml, json, wide
+		StringVar(&conf.OutputFormat)
+	get.Flag("expr", "item filter").Short('e').
+		StringVar(&conf.Expr)
+
+	cli.Version(VERSION)
+
+	cmd := kingpin.MustParse(cli.Parse(os.Args[1:]))
+
+	// adjust loglevel
+	level := logrus.Level(conf.LogLevel) + logrus.ErrorLevel
+	logrus.SetOutput(os.Stderr)
+	logrus.SetLevel(level) // error level is default
+	logrus.Infof("error level: %s", level)
+
+	b, err := backend.New(conf.InventoryFile)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	switch cmd {
+	case run.FullCommand():
+		b.Run(conf.Expr, conf.Template, conf.OutputFormat, conf.Args)
+	case set.FullCommand():
+		b.Set(conf.ItemNames, conf.Labels)
+	case get.FullCommand():
+		b.Get(conf.Expr, conf.OutputFormat)
+	}
+
+}
