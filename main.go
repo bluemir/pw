@@ -21,6 +21,7 @@ type Config struct {
 	Labels        map[string]string
 	Args          []string
 	ItemNames     []string
+	WorkerNumber  int
 }
 
 func main() {
@@ -50,6 +51,8 @@ func main() {
 	run.Flag("templates", "running template").Short('t').
 		Default("default").
 		StringVar(&conf.Template)
+	run.Flag("worker", "number of worker. 0 is unlimited").Short('w').
+		IntVar(&conf.WorkerNumber)
 	run.Arg("args", "args to run").
 		StringsVar(&conf.Args)
 
@@ -60,7 +63,7 @@ func main() {
 		StringsVar(&conf.ItemNames)
 
 	get := cli.Command("get", "Get item")
-	get.Flag("output", "item display format").
+	get.Flag("output", "item display format").Short('o').
 		Default("name"). // name, yaml, json, wide
 		StringVar(&conf.OutputFormat)
 	get.Flag("expr", "item filter").Short('e').
@@ -83,11 +86,18 @@ func main() {
 
 	switch cmd {
 	case run.FullCommand():
-		b.Run(conf.Expr, conf.Template, conf.OutputFormat, conf.Args)
+		if err := b.Run(conf.Expr, conf.Template, conf.OutputFormat, conf.WorkerNumber, conf.Args); err != nil {
+			logrus.Fatal(err)
+		}
 	case set.FullCommand():
-		b.Set(conf.ItemNames, conf.Labels)
+		if err := b.Set(conf.ItemNames, conf.Labels); err != nil {
+			logrus.Fatal(err)
+		}
 	case get.FullCommand():
-		b.Get(conf.Expr, conf.OutputFormat)
+		if err := b.Get(conf.Expr, conf.OutputFormat); err != nil {
+			logrus.Fatal(err)
+		}
+
 	}
 
 }

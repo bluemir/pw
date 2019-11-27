@@ -30,11 +30,21 @@ clean:
 run: TEST_FILE=build/test.yaml
 run: build/$(BIN_NAME)
 	# log level: trace
-	@rm build/test.yaml || true 
+	@rm build/test.yaml || true
 	$< -vvvv
 	$< -vvvv -i $(TEST_FILE) set test1.node
 	$< -vvvv -i $(TEST_FILE) set -l cluster=test test1.node test2.node
 	$< -vvvv -i $(TEST_FILE) set -l role=worker -l rack=1 test1.node
+	$< -vvvv -i $(TEST_FILE) set -l added=190201 1.node
+	$< -vvvv -i $(TEST_FILE) set -l added=190202 2.node
+	$< -vvvv -i $(TEST_FILE) set -l added=190203 3.node
+	$< -vvvv -i $(TEST_FILE) set -l _name=a test2.node
+	$< -vvvv -i $(TEST_FILE) get -e 'name=="test1.node"'
+	$< -vvvv -i $(TEST_FILE) get -e 'added>="190202"'
+	$< -vvvv -i $(TEST_FILE) get -o yaml
+	$< -vvvv -i $(TEST_FILE) get -o json
+	$< -vvvv -i $(TEST_FILE) run -e 'cluster=="test" && role=="worker"' -- echo hello world
+	#$< -vvvv -i $(TEST_FILE) run -e 'cluster=="test" && role=="worker"' -t echo -- hello world
 	cat build/test.yaml
 
 auto-run:
