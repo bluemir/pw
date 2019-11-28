@@ -1,4 +1,4 @@
-module github.com/bluemir/todo
+module github.com/bluemir/pw
 
 go 1.12
 

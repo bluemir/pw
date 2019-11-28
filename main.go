@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	"github.com/bluemir/todo/pkg/backend"
+	"github.com/bluemir/pw/pkg/backend"
 )
 
 var VERSION string
@@ -44,7 +44,7 @@ func main() {
 
 	run := cli.Command("run", "run command")
 	run.Flag("output", "display format(json, text, simple, detail or free format)").Short('o').
-		Default("name"). // wide,
+		Default("simple"). // wide, all, template
 		StringVar(&conf.OutputFormat)
 	run.Flag("expr", "condition that filter items").Short('e').
 		StringVar(&conf.Expr)
@@ -68,6 +68,12 @@ func main() {
 		StringVar(&conf.OutputFormat)
 	get.Flag("expr", "item filter").Short('e').
 		StringVar(&conf.Expr)
+
+	template := cli.Command("template", "set run template")
+	template.Arg("name", "template name").
+		StringVar(&conf.Template)
+	template.Arg("args", "argument").
+		StringsVar(&conf.Args)
 
 	cli.Version(VERSION)
 
@@ -97,7 +103,10 @@ func main() {
 		if err := b.Get(conf.Expr, conf.OutputFormat); err != nil {
 			logrus.Fatal(err)
 		}
-
+	case template.FullCommand():
+		if err := b.Template(conf.Template, conf.Args); err != nil {
+			logrus.Fatal(err)
+		}
 	}
 
 }
