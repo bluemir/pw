@@ -57,6 +57,7 @@ run: build/$(BIN_NAME)
 	$< -i $(TEST_FILE) run -e 'name contains "001"' -t echo -o wide -- hello world
 	$< -i $(TEST_FILE) run -e 'name contains "001"' -t echo -o text -- hello world
 	$< -i $(TEST_FILE) run -e 'name contains "001"' -t echo -o json -- hello world
+	$< -i $(TEST_FILE) get | xargs $< -i $(TEST_FILE) set -l rack="-"
 	@echo "================ Done =============="
 
 auto-run:

@@ -9,7 +9,11 @@ func (backend *Backend) Set(itemNames []string, labels map[string]string) error 
 		item := inv.Take(name)
 
 		for k, v := range labels {
-			item[k] = v
+			if v == "-" {
+				delete(item, k)
+			} else {
+				item[k] = v
+			}
 		}
 
 		if err := inv.Put(item); err != nil {
