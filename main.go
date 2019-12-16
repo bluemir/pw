@@ -69,6 +69,10 @@ func main() {
 	get.Flag("expr", "item filter").Short('e').
 		StringVar(&conf.Expr)
 
+	del := cli.Command("del", "Delete item")
+	del.Arg("item", "items").Required().
+		StringsVar(&conf.ItemNames)
+
 	template := cli.Command("template", "set run template")
 	template.Arg("name", "template name").
 		StringVar(&conf.Template)
@@ -101,6 +105,10 @@ func main() {
 		}
 	case get.FullCommand():
 		if err := b.Get(conf.Expr, conf.OutputFormat); err != nil {
+			logrus.Fatal(err)
+		}
+	case del.FullCommand():
+		if err := b.Del(conf.ItemNames); err != nil {
 			logrus.Fatal(err)
 		}
 	case template.FullCommand():

@@ -26,3 +26,12 @@ func (inv *Inventory) Put(newItem Item) error {
 
 	return nil
 }
+func (inv *Inventory) Del(name string) {
+	logrus.Trace(inv, name)
+	for i, item := range inv.Items {
+		if item["name"] == name {
+			inv.Items = append(inv.Items[:i], inv.Items[i+1:]...)
+			return
+		}
+	}
+}
