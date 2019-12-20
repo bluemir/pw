@@ -33,16 +33,16 @@ func main() {
 		return
 	}
 
-	cli := kingpin.New("todo", "main code")
+	cli := kingpin.New("pw", "run parallel worker with template")
 
-	cli.Flag("verbose", "Log level").Short('v').
+	cli.Flag("verbose", "log level").Short('v').
 		CounterVar(&conf.LogLevel)
 
-	cli.Flag("inventory", "Inventory").Short('i').
+	cli.Flag("inventory", "inventory file. contain items and templates").Short('i').
 		PlaceHolder("$HOME/.inventory.yaml").Default(os.ExpandEnv("$HOME/.inventory.yaml")).
 		StringVar(&conf.InventoryFile)
 
-	run := cli.Command("run", "run command")
+	run := cli.Command("run", "Run command")
 	run.Flag("output", "display format(json, text, simple, detail or free format)").Short('o').
 		Default("simple"). // wide, all, template
 		StringVar(&conf.OutputFormat)
@@ -56,7 +56,7 @@ func main() {
 	run.Arg("args", "args to run").
 		StringsVar(&conf.Args)
 
-	set := cli.Command("set", "set item")
+	set := cli.Command("set", "Set item")
 	set.Flag("label", "labels").Short('l').
 		StringMapVar(&conf.Labels)
 	set.Arg("item", "items").Required().
@@ -73,7 +73,7 @@ func main() {
 	del.Arg("item", "items").Required().
 		StringsVar(&conf.ItemNames)
 
-	template := cli.Command("template", "set run template")
+	template := cli.Command("template", "Set template")
 	template.Arg("name", "template name").
 		StringVar(&conf.Template)
 	template.Arg("args", "argument").
