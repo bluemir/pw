@@ -40,4 +40,3 @@ pw del ar1w0101.ncc ar1w0102.ncc
 pw template ssh 'ssh {{.user}}@{{.name}} -C {{args}}'
 ```
 
-

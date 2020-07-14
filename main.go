@@ -13,16 +13,19 @@ import (
 var VERSION string
 
 type Config struct {
-	LogLevel      int
-	InventoryFile string
-	OutputFormat  string
-	Expr          string
-	Template      string
-	Labels        map[string]string
-	Args          []string
-	ItemNames     []string
-	WorkerNumber  int
+	LogLevel         int
+	InventoryFile    string
+	OutputFormat     string
+	Expr             string
+	ShortcutExprName string
+	Template         string
+	Labels           map[string]string
+	Args             []string
+	ItemNames        []string
+	WorkerNumber     int
 }
+
+// https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
 
 func main() {
 
@@ -43,11 +46,13 @@ func main() {
 		StringVar(&conf.InventoryFile)
 
 	run := cli.Command("run", "Run command")
-	run.Flag("output", "display format(json, text, simple, detail or free format)").Short('o').
+	run.Flag("output", "display format(json, text, simple, wide or free format)").Short('o').
 		Default("simple"). // wide, all, template
 		StringVar(&conf.OutputFormat)
 	run.Flag("expr", "condition that filter items").Short('e').
 		StringVar(&conf.Expr)
+	run.Flag("shotcut", "expr shortcut. if exist '--expr' will be ignored").Short('s').
+		StringVar(&conf.ShortcutExprName)
 	run.Flag("templates", "running template").Short('t').
 		Default("default").
 		StringVar(&conf.Template)
@@ -68,6 +73,8 @@ func main() {
 		StringVar(&conf.OutputFormat)
 	get.Flag("expr", "item filter").Short('e').
 		StringVar(&conf.Expr)
+	get.Flag("shotcut", "expr shortcut. if exist '--expr' will be ignored").Short('s').
+		StringVar(&conf.ShortcutExprName)
 
 	del := cli.Command("del", "Delete item")
 	del.Arg("item", "items").Required().
@@ -96,7 +103,7 @@ func main() {
 
 	switch cmd {
 	case run.FullCommand():
-		if err := b.Run(conf.Expr, conf.Template, conf.OutputFormat, conf.WorkerNumber, conf.Args); err != nil {
+		if err := b.Run(conf.Expr, conf.ShortcutExprName, conf.Template, conf.OutputFormat, conf.WorkerNumber, conf.Args); err != nil {
 			logrus.Fatal(err)
 		}
 	case set.FullCommand():
@@ -104,7 +111,7 @@ func main() {
 			logrus.Fatal(err)
 		}
 	case get.FullCommand():
-		if err := b.Get(conf.Expr, conf.OutputFormat); err != nil {
+		if err := b.Get(conf.Expr, conf.ShortcutExprName, conf.OutputFormat); err != nil {
 			logrus.Fatal(err)
 		}
 	case del.FullCommand():

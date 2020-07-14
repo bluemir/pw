@@ -12,12 +12,18 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (backend *Backend) Run(expr string, template string, outputFormat string, workerNum int, args []string) error {
+func (backend *Backend) Run(expr string, shortcut string, template string, outputFormat string, workerNum int, args []string) error {
 	inv, err := loadInventory(backend.invFilePath)
 	if err != nil {
 		return err
 	}
 	inv = inv.Init()
+
+	if shortcut != "" {
+		if v, ok := inv.Init().Shortcuts[shortcut]; ok {
+			expr = v
+		}
+	}
 
 	items, err := inv.ApplyExpr(expr)
 	if err != nil {

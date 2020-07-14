@@ -10,6 +10,7 @@ import (
 type Inventory struct {
 	Items     []Item            `yaml:"items"`
 	Templates map[string]string `yaml:"templates"`
+	Shortcuts map[string]string `yaml:"shortcuts"`
 }
 
 type Item map[string]string

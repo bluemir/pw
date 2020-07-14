@@ -8,12 +8,18 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-func (backend *Backend) Get(expr string, outputFormat string) error {
+func (backend *Backend) Get(expr string, shortcut string, outputFormat string) error {
 	inv, err := loadInventory(backend.invFilePath)
 	if err != nil {
 		return err
 	}
 	inv = inv.Init()
+
+	if shortcut != "" {
+		if v, ok := inv.Init().Shortcuts[shortcut]; ok {
+			expr = v
+		}
+	}
 
 	items, err := inv.ApplyExpr(expr)
 	if err != nil {
