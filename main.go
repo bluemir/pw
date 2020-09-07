@@ -13,23 +13,24 @@ import (
 var VERSION string
 
 type Config struct {
-	LogLevel         int
-	InventoryFile    string
-	OutputFormat     string
-	Expr             string
-	ShortcutExprName string
-	Template         string
-	Labels           map[string]string
-	Args             []string
-	ItemNames        []string
-	WorkerNumber     int
+	LogLevel      int
+	InventoryFile string
+
+	RunOptions         backend.RunOptions
+	GetOptions         backend.GetOptions
+	SetOptions         backend.SetOptions
+	DelOptions         backend.DelOptions
+	TemplateSetOptions backend.TemplateSetOptions
 }
 
 // https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
 
 func main() {
-
-	conf := &Config{Labels: map[string]string{}}
+	conf := &Config{
+		SetOptions: backend.SetOptions{
+			Labels: map[string]string{},
+		},
+	}
 
 	if err := env.Set(conf); err != nil {
 		logrus.Fatal(err)
@@ -48,43 +49,44 @@ func main() {
 	run := cli.Command("run", "Run command")
 	run.Flag("output", "display format(json, text, simple, wide or free format)").Short('o').
 		Default("simple"). // wide, all, template
-		StringVar(&conf.OutputFormat)
+		StringVar(&conf.RunOptions.OutputFormat)
 	run.Flag("expr", "condition that filter items").Short('e').
-		StringVar(&conf.Expr)
+		StringVar(&conf.RunOptions.Expr)
 	run.Flag("shotcut", "expr shortcut. if exist '--expr' will be ignored").Short('s').
-		StringVar(&conf.ShortcutExprName)
+		StringVar(&conf.RunOptions.ShortcutExprName)
 	run.Flag("templates", "running template").Short('t').
 		Default("default").
-		StringVar(&conf.Template)
+		StringVar(&conf.RunOptions.Template)
 	run.Flag("worker", "number of worker. 0 is unlimited").Short('w').
-		IntVar(&conf.WorkerNumber)
+		IntVar(&conf.RunOptions.WorkerNumber)
 	run.Arg("args", "args to run").
-		StringsVar(&conf.Args)
+		StringsVar(&conf.RunOptions.Args)
 
 	set := cli.Command("set", "Set item")
 	set.Flag("label", "labels").Short('l').
-		StringMapVar(&conf.Labels)
+		StringMapVar(&conf.SetOptions.Labels)
 	set.Arg("item", "items").Required().
-		StringsVar(&conf.ItemNames)
+		StringsVar(&conf.SetOptions.ItemNames)
 
 	get := cli.Command("get", "Get item")
 	get.Flag("output", "item display format").Short('o').
 		Default("name"). // name, yaml, json, wide
-		StringVar(&conf.OutputFormat)
+		StringVar(&conf.GetOptions.OutputFormat)
 	get.Flag("expr", "item filter").Short('e').
-		StringVar(&conf.Expr)
+		StringVar(&conf.GetOptions.Expr)
 	get.Flag("shotcut", "expr shortcut. if exist '--expr' will be ignored").Short('s').
-		StringVar(&conf.ShortcutExprName)
+		StringVar(&conf.GetOptions.ShortcutExprName)
 
 	del := cli.Command("del", "Delete item")
 	del.Arg("item", "items").Required().
-		StringsVar(&conf.ItemNames)
+		StringsVar(&conf.DelOptions.ItemNames)
 
 	template := cli.Command("template", "Set template")
+
 	template.Arg("name", "template name").
-		StringVar(&conf.Template)
+		StringVar(&conf.TemplateSetOptions.Name)
 	template.Arg("args", "argument").
-		StringsVar(&conf.Args)
+		StringsVar(&conf.TemplateSetOptions.Args)
 
 	cli.Version(VERSION)
 
@@ -103,25 +105,31 @@ func main() {
 
 	switch cmd {
 	case run.FullCommand():
-		if err := b.Run(conf.Expr, conf.ShortcutExprName, conf.Template, conf.OutputFormat, conf.WorkerNumber, conf.Args); err != nil {
+		if err := b.Run(&conf.RunOptions); err != nil {
 			logrus.Fatal(err)
 		}
 	case set.FullCommand():
-		if err := b.Set(conf.ItemNames, conf.Labels); err != nil {
+		if err := b.Set(&conf.SetOptions); err != nil {
 			logrus.Fatal(err)
 		}
 	case get.FullCommand():
-		if err := b.Get(conf.Expr, conf.ShortcutExprName, conf.OutputFormat); err != nil {
+		if err := b.Get(&conf.GetOptions); err != nil {
 			logrus.Fatal(err)
 		}
 	case del.FullCommand():
-		if err := b.Del(conf.ItemNames); err != nil {
+		if err := b.Del(&conf.DelOptions); err != nil {
 			logrus.Fatal(err)
 		}
 	case template.FullCommand():
-		if err := b.Template(conf.Template, conf.Args); err != nil {
+		if err := b.TemplateSet(&conf.TemplateSetOptions); err != nil {
 			logrus.Fatal(err)
 		}
+
+		// TODO
+		// pw template set
+		// pw template del
+		// pw shortcut set
+		// pw shortcut del
 	}
 
 }

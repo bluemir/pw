@@ -1,6 +1,8 @@
 package backend
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+)
 
 func (inv *Inventory) Take(name string) Item {
 	logrus.Trace(inv, name)

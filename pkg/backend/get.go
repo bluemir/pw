@@ -8,25 +8,32 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-func (backend *Backend) Get(expr string, shortcut string, outputFormat string) error {
+type GetOptions struct {
+	Expr             string
+	ShortcutExprName string
+	OutputFormat     string
+}
+
+func (backend *Backend) Get(opt *GetOptions) error {
+	//func (backend *Backend) Get(expr string, shortcut string, outputFormat string) error {
 	inv, err := loadInventory(backend.invFilePath)
 	if err != nil {
 		return err
 	}
 	inv = inv.Init()
 
-	if shortcut != "" {
-		if v, ok := inv.Init().Shortcuts[shortcut]; ok {
-			expr = v
+	if opt.ShortcutExprName != "" {
+		if v, ok := inv.Init().Shortcuts[opt.ShortcutExprName]; ok {
+			opt.Expr = v
 		}
 	}
 
-	items, err := inv.ApplyExpr(expr)
+	items, err := inv.ApplyExpr(opt.Expr)
 	if err != nil {
 		return err
 	}
 
-	switch outputFormat {
+	switch opt.OutputFormat {
 	case "name":
 		for _, item := range items {
 			fmt.Println(item["name"])

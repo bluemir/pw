@@ -12,20 +12,30 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (backend *Backend) Run(expr string, shortcut string, template string, outputFormat string, workerNum int, args []string) error {
+type RunOptions struct {
+	Expr             string
+	ShortcutExprName string
+	Template         string
+	OutputFormat     string
+	WorkerNumber     int
+	Args             []string
+}
+
+func (backend *Backend) Run(opt *RunOptions) error {
+	//func (backend *Backend) Run(expr string, shortcut string, template string, outputFormat string, workerNum int, args []string) error {
 	inv, err := loadInventory(backend.invFilePath)
 	if err != nil {
 		return err
 	}
 	inv = inv.Init()
 
-	if shortcut != "" {
-		if v, ok := inv.Init().Shortcuts[shortcut]; ok {
-			expr = v
+	if opt.ShortcutExprName != "" {
+		if v, ok := inv.Init().Shortcuts[opt.ShortcutExprName]; ok {
+			opt.Expr = v
 		}
 	}
 
-	items, err := inv.ApplyExpr(expr)
+	items, err := inv.ApplyExpr(opt.Expr)
 	if err != nil {
 		return err
 	}
@@ -33,23 +43,23 @@ func (backend *Backend) Run(expr string, shortcut string, template string, outpu
 
 	// Output
 
-	console := NewConsole(outputFormat, items)
+	console := NewConsole(opt.OutputFormat, items)
 
-	if workerNum <= 0 {
-		workerNum = len(items)
+	if opt.WorkerNumber <= 0 {
+		opt.WorkerNumber = len(items)
 	}
 
-	t, ok := inv.Templates[template]
+	t, ok := inv.Templates[opt.Template]
 	if !ok {
-		return errors.Errorf("template not found(name: '%s'. check inventory file", template)
+		return errors.Errorf("template not found(name: '%s'. check inventory file", opt.Template)
 	}
 
-	commandBuilder, err := NewCommandBuilder(t, args)
+	commandBuilder, err := NewCommandBuilder(t, opt.Args)
 	if err != nil {
 		return err
 	}
 
-	wp := workerpool.New(workerNum)
+	wp := workerpool.New(opt.WorkerNumber)
 	for _, item := range items {
 		wp.Submit(executeCommand(context.TODO(), item, console, commandBuilder))
 	}

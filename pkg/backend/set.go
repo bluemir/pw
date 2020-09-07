@@ -1,14 +1,19 @@
 package backend
 
-func (backend *Backend) Set(itemNames []string, labels map[string]string) error {
+type SetOptions struct {
+	ItemNames []string
+	Labels    map[string]string
+}
+
+func (backend *Backend) Set(opt *SetOptions) error {
 	inv, _ := loadInventory(backend.invFilePath)
 	inv = inv.Init()
 	// ignore error for new file
 
-	for _, name := range itemNames {
+	for _, name := range opt.ItemNames {
 		item := inv.Take(name)
 
-		for k, v := range labels {
+		for k, v := range opt.Labels {
 			if v == "-" {
 				delete(item, k)
 			} else {

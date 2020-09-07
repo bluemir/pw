@@ -1,4 +1,4 @@
-VERSION?=$(shell git describe --long --tags --dirty --always)
+VERSION?=$(shell git describe --tags --dirty --always)
 export VERSION
 
 IMPORT_PATH=$(shell cat go.mod | head -n 1 | awk '{print $$2}')
@@ -6,8 +6,6 @@ BIN_NAME=$(notdir $(IMPORT_PATH))
 
 export GO111MODULE=on
 export GIT_TERMINAL_PROMPT=1
-
-DOCKER_IMAGE_NAME=bluemir/$(BIN_NAME)
 
 ## Go Sources
 GO_SOURCES = $(shell find . -name "vendor"  -prune -o \
@@ -72,11 +70,6 @@ auto-run:
 	@echo \
 	makefile \
 	$(GO_SOURCES) \
-	$(JS_SOURCES) \
-	$(HTML_SOURCES) \
-	$(CSS_SOURCES) \
-	$(WEB_LIBS) \
-	$(HTML_TEMPLATE) \
 	| tr " " "\n"
 
 test:

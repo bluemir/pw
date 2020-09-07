@@ -1,10 +1,14 @@
 package backend
 
-func (backend *Backend) Del(itemNames []string) error {
+type DelOptions struct {
+	ItemNames []string
+}
+
+func (backend *Backend) Del(opt *DelOptions) error {
 	inv, _ := loadInventory(backend.invFilePath)
 	inv = inv.Init()
 
-	for _, name := range itemNames {
+	for _, name := range opt.ItemNames {
 		inv.Del(name)
 	}
 
