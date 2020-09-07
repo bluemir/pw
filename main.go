@@ -21,6 +21,8 @@ type Config struct {
 	SetOptions         backend.SetOptions
 	DelOptions         backend.DelOptions
 	TemplateSetOptions backend.TemplateSetOptions
+	ShortcutSetOptions backend.ShortcutSetOptions
+	ShortcutDelOptions backend.ShortcutDelOptions
 }
 
 // https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
@@ -44,6 +46,7 @@ func main() {
 
 	cli.Flag("inventory", "inventory file. contain items and templates").Short('i').
 		PlaceHolder("$HOME/.inventory.yaml").Default(os.ExpandEnv("$HOME/.inventory.yaml")).
+		Envar("INVENTORY_FILE").
 		StringVar(&conf.InventoryFile)
 
 	run := cli.Command("run", "Run command")
@@ -88,6 +91,18 @@ func main() {
 	template.Arg("args", "argument").
 		StringsVar(&conf.TemplateSetOptions.Args)
 
+	shortcut := cli.Command("shortcut", "Shortcut")
+
+	shortcutSet := shortcut.Command("set", "Set shortcuts")
+	shortcutSet.Arg("name", "shortcut name").
+		StringVar(&conf.ShortcutSetOptions.Name)
+	shortcutSet.Arg("expr", "shortcut content").
+		StringVar(&conf.ShortcutSetOptions.Expr)
+
+	shortcutDel := shortcut.Command("del", "Delete shortcuts")
+	shortcutDel.Arg("names", "shortcut names for delete").
+		StringsVar(&conf.ShortcutDelOptions.Names)
+
 	cli.Version(VERSION)
 
 	cmd := kingpin.MustParse(cli.Parse(os.Args[1:]))
@@ -124,12 +139,20 @@ func main() {
 		if err := b.TemplateSet(&conf.TemplateSetOptions); err != nil {
 			logrus.Fatal(err)
 		}
+	case shortcutSet.FullCommand():
+		if err := b.ShortcutSet(&conf.ShortcutSetOptions); err != nil {
+			logrus.Fatal(err)
+		}
+	case shortcutDel.FullCommand():
+		if err := b.ShortcutDel(&conf.ShortcutDelOptions); err != nil {
+			logrus.Fatal(err)
+		}
+	default:
+		logrus.Fatal("unknown error")
 
 		// TODO
 		// pw template set
 		// pw template del
-		// pw shortcut set
-		// pw shortcut del
 	}
 
 }

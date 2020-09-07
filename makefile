@@ -25,38 +25,41 @@ build/$(BIN_NAME): $(GO_SOURCES) makefile
 clean:
 	rm -rf build/
 
-run: TEST_FILE=build/test.yaml
+run: export INVENTORY_FILE=build/test.yaml
 run: build/$(BIN_NAME)
 	# log level: trace
-	@rm $(TEST_FILE) || true
+	@rm $(INVENTORY_FILE) || true
 	$< -vvvv
-	$< -i $(TEST_FILE) template echo 'echo {{args}}'
-	$< -i $(TEST_FILE) template ssh 'ssh -o "StrictHostKeyChecking=no" -n {{.user}}@{{.name}} -C {{args}}'
-	$< -i $(TEST_FILE) template scp 'scp "{{arg 1}}" {{.name}}:"{{arg 2}}"'
-	$< -i $(TEST_FILE) template rsh 'rsh -l {{.user}} {{.name}} {{args}}'
-	$< -i $(TEST_FILE) template gce 'gcloud compute --project "{{.project}}" ssh --zone "{{.zone}}" "{{.name}}"'
-	$< -i $(TEST_FILE) set test1.node
-	$< -i $(TEST_FILE) set -l cluster=test test1.node test2.node
-	$< -i $(TEST_FILE) set -l role=worker -l rack=1 test1.node
-	$< -i $(TEST_FILE) set -l added=190201 1.node
-	$< -i $(TEST_FILE) set -l added=190202 2.node
-	$< -i $(TEST_FILE) set -l added=190203 3.node
-	$< -i $(TEST_FILE) set -l name=a test2.node
+	$< template echo 'echo {{args}}'
+	$< template ssh 'ssh -o "StrictHostKeyChecking=no" -n {{.user}}@{{.name}} -C {{args}}'
+	$< template scp 'scp "{{arg 1}}" {{.name}}:"{{arg 2}}"'
+	$< template rsh 'rsh -l {{.user}} {{.name}} {{args}}'
+	$< template gce 'gcloud compute --project "{{.project}}" ssh --zone "{{.zone}}" "{{.name}}"'
+	$< set test1.node
+	$< set -l cluster=test test1.node test2.node
+	$< set -l role=worker -l rack=1 test1.node
+	$< set -l added=190201 1.node
+	$< set -l added=190202 2.node
+	$< set -l added=190203 3.node
+	$< set -l name=a test2.node
 	for rack in $$(seq -f rack%02g 1 8); do \
-		seq -f "node.$$rack.%03g" 1 32 | xargs $< -i $(TEST_FILE) set -l rack=$$rack -l cluster=test2; \
+		seq -f "node.$$rack.%03g" 1 32 | xargs $< set -l rack=$$rack -l cluster=test2; \
 	done
-	$< -i $(TEST_FILE) get -e 'name=="test1.node"'
-	$< -i $(TEST_FILE) get -o yaml
-	$< -i $(TEST_FILE) get -o json | jq
-	$< -i $(TEST_FILE) get -e 'rack>="rack05" && name contains "001"'
-	$< -i $(TEST_FILE) run -e 'cluster=="test" && role=="worker"' -- echo hello world
-	TIME="%E" time $< -i $(TEST_FILE) run -e 'rack>="rack05" && name contains "001"' -w 2 -- sleep 1
-	$< -i $(TEST_FILE) run -e 'name contains "001"' -t echo -- hello world
-	$< -i $(TEST_FILE) run -e 'name contains "001"' -t echo -o wide -- hello world
-	$< -i $(TEST_FILE) run -e 'name contains "001"' -t echo -o text -- hello world
-	$< -i $(TEST_FILE) run -e 'name contains "001"' -t echo -o json -- hello world
-	$< -i $(TEST_FILE) get -e 'rack=="rack08"' | xargs $< -i $(TEST_FILE) del
-	$< -i $(TEST_FILE) get | xargs $< -i $(TEST_FILE) set -l rack="-"
+	$< get -e 'name=="test1.node"'
+	$< get -o yaml
+	$< get -o json | jq
+	$< get -e 'rack>="rack05" && name contains "001"'
+	$< run -e 'cluster=="test" && role=="worker"' -- echo hello world
+	TIME="%E" time $< run -e 'rack>="rack05" && name contains "001"' -w 2 -- sleep 1
+	$< run -e 'name contains "001"' -t echo -- hello world
+	$< run -e 'name contains "001"' -t echo -o wide -- hello world
+	$< run -e 'name contains "001"' -t echo -o text -- hello world
+	$< run -e 'name contains "001"' -t echo -o json -- hello world
+	$< get -e 'rack=="rack08"' | xargs $< del
+	$< get | xargs $< set -l rack="-"
+	$< shortcut set rack-new 'name contains "rack07" || name contains "rack06"'
+	$< get -s rack-new
+	$< run -s rack-new -t echo -- 1
 	@echo "================ Done =============="
 
 auto-run:
