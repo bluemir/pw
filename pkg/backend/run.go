@@ -5,11 +5,11 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/bluemir/pw/pkg/util/console"
 	"github.com/gammazero/workerpool"
-	"github.com/mgutz/str"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/bluemir/pw/pkg/util/console"
 )
 
 type RunOptions struct {
@@ -42,8 +42,6 @@ func (backend *Backend) Run(opt *RunOptions) error {
 	logrus.Debug(items)
 
 	// Output
-	maxLen := getMaxItemLen(items)
-
 	cout := console.New(os.Stdout)
 
 	if opt.WorkerNumber <= 0 {
@@ -60,21 +58,29 @@ func (backend *Backend) Run(opt *RunOptions) error {
 		return err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	wp := workerpool.New(opt.WorkerNumber)
 	// XXX support variant format
+	formatter := newOutputFomatter(items, opt.OutputFormat)
+
 	for _, item := range items {
 		wp.Submit(executeCommand(
-			context.TODO(),
+			ctx,
 			item,
-			cout.WithPrefix(str.PadLeft(item["name"], " ", maxLen)+" | "),
+			cout,
+			formatter,
 			commandBuilder,
 		))
 	}
 	wp.StopWait()
 
+	cout.Write([]byte{'\n'})
+
 	return nil
 }
-func getMaxItemLen(items []Item) int {
+func getMaxItemNameLen(items []Item) int {
 	max := 0
 	for _, item := range items {
 		if max < len(item["name"]) {
@@ -83,7 +89,7 @@ func getMaxItemLen(items []Item) int {
 	}
 	return max
 }
-func executeCommand(ctx context.Context, item Item, cout *console.Console, commandBuilder *CommandBuilder) func() {
+func executeCommand(ctx context.Context, item Item, cout *console.Console, formatter OutputFormatter, commandBuilder *CommandBuilder) func() {
 	return func() {
 		defer cout.Close()
 
@@ -97,12 +103,13 @@ func executeCommand(ctx context.Context, item Item, cout *console.Console, comma
 		logrus.Trace(cmd)
 
 		c := exec.CommandContext(ctx, cmd[0], cmd[1:]...)
-		defer c.Wait()
 
 		// TODO support variant format
-		c.Stdout = cout.WithPrefix("stdout | ")
-		c.Stderr = cout.WithPrefix("stderr | ")
+		c.Stdout = cout.WithModifier(formatter.Modifier(item, "stdin"))
+		c.Stderr = cout.WithModifier(formatter.Modifier(item, "stdout"))
 
-		c.Run()
+		if err := c.Run(); err != nil {
+			logrus.Fatal(err)
+		}
 	}
 }

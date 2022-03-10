@@ -3,6 +3,7 @@ package console_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -118,4 +119,19 @@ func TestWithModifierChaining(t *testing.T) {
 	console.Close()
 
 	assert.Equal(t, `[host]{server=api}aa`, buf.String())
+}
+func TestWithModifierHasState(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+
+	count := 0
+	console := console.New(buf).WithModifier(func(str string) string {
+		count++
+		return fmt.Sprintf("%d | %s", count, str)
+	})
+
+	console.Write([]byte("aa\nbb"))
+
+	console.Close()
+
+	assert.Equal(t, "1 | aa\n2 | bb", buf.String())
 }
