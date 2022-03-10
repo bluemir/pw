@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"sync/atomic"
 )
 
 // writer but has little tweak each line
 type Console struct {
 	output     io.Writer
-	firstWrite *bool // TODO make atomic
+	firstWrite *int32 // TODO make atomic
 
 	buf     *bytes.Buffer
 	scanner *bufio.Scanner
@@ -24,7 +25,7 @@ func New(output io.Writer) *Console {
 
 	scanner := bufio.NewScanner(buf)
 
-	firstWrite := false
+	firstWrite := int32(0)
 
 	return &Console{
 		output:     output,
@@ -42,23 +43,22 @@ func (c *Console) Write(p []byte) (n int, err error) {
 	}
 
 	for c.scanner.Scan() {
-		if *c.firstWrite {
-			_, err = c.output.Write([]byte{'\n'})
-			if err != nil {
-				return n, err
-			}
-		} else {
-			*c.firstWrite = true
-		}
-
 		str := c.scanner.Text()
 		for _, m := range c.modifier {
 			str = m(str)
 		}
 
-		_, err = c.output.Write([]byte(str))
-		if err != nil {
-			return n, err
+		// QUESTION is it thread-safe?
+		if !atomic.CompareAndSwapInt32(c.firstWrite, 0, 1) {
+			_, err = c.output.Write(append([]byte{'\n'}, []byte(str)...))
+			if err != nil {
+				return n, err
+			}
+		} else {
+			_, err = c.output.Write([]byte(str))
+			if err != nil {
+				return n, err
+			}
 		}
 	}
 
