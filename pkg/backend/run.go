@@ -1,15 +1,15 @@
 package backend
 
 import (
-	"bufio"
 	"context"
-	"io"
+	"os"
 	"os/exec"
 
+	"github.com/bluemir/pw/pkg/util/console"
 	"github.com/gammazero/workerpool"
+	"github.com/mgutz/str"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
 )
 
 type RunOptions struct {
@@ -42,8 +42,9 @@ func (backend *Backend) Run(opt *RunOptions) error {
 	logrus.Debug(items)
 
 	// Output
+	maxLen := getMaxItemLen(items)
 
-	console := NewConsole(opt.OutputFormat, items)
+	cout := console.New(os.Stdout)
 
 	if opt.WorkerNumber <= 0 {
 		opt.WorkerNumber = len(items)
@@ -60,15 +61,32 @@ func (backend *Backend) Run(opt *RunOptions) error {
 	}
 
 	wp := workerpool.New(opt.WorkerNumber)
+	// XXX support variant format
 	for _, item := range items {
-		wp.Submit(executeCommand(context.TODO(), item, console, commandBuilder))
+		wp.Submit(executeCommand(
+			context.TODO(),
+			item,
+			cout.WithPrefix(str.PadLeft(item["name"], " ", maxLen)+" | "),
+			commandBuilder,
+		))
 	}
 	wp.StopWait()
 
 	return nil
 }
-func executeCommand(ctx context.Context, item Item, console Console, commandBuilder *CommandBuilder) func() {
+func getMaxItemLen(items []Item) int {
+	max := 0
+	for _, item := range items {
+		if max < len(item["name"]) {
+			max = len(item["name"])
+		}
+	}
+	return max
+}
+func executeCommand(ctx context.Context, item Item, cout *console.Console, commandBuilder *CommandBuilder) func() {
 	return func() {
+		defer cout.Close()
+
 		cmd, err := commandBuilder.build(item)
 		if err != nil {
 			//TODO
@@ -81,42 +99,10 @@ func executeCommand(ctx context.Context, item Item, console Console, commandBuil
 		c := exec.CommandContext(ctx, cmd[0], cmd[1:]...)
 		defer c.Wait()
 
-		stdout, err := c.StdoutPipe()
-		if err != nil {
-			logrus.Warn("pipe stdout", err)
-			logrus.Fatal(err)
-			return
-		}
-		stderr, err := c.StderrPipe()
-		if err != nil {
-			logrus.Warn("pipe stderr", err)
-			logrus.Fatal(err)
-			return
-		}
-		eg, _ := errgroup.WithContext(context.Background())
-		eg.Go(read(item, "stdout", stdout, console))
-		eg.Go(read(item, "stderr", stderr, console))
+		// TODO support variant format
+		c.Stdout = cout.WithPrefix("stdout | ")
+		c.Stderr = cout.WithPrefix("stderr | ")
 
-		eg.Go(c.Start)
-		eg.Wait()
-	}
-}
-
-func read(item Item, from string, reader io.Reader, console Console) func() error {
-	name := item["_"]
-	return func() error {
-		ln := uint(1)
-		r := bufio.NewScanner(reader)
-		for r.Scan() {
-			logrus.Debugf("read line from %s %s", name, from)
-			console.Out(ln, from, r.Text(), item)
-			ln++
-		}
-		if err := r.Err(); err != nil {
-			logrus.Errorf("read line error %s %s: %q", name, from, err)
-			return err
-		}
-		logrus.Debugf("end of stream")
-		return nil
+		c.Run()
 	}
 }
