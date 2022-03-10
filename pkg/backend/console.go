@@ -32,7 +32,6 @@ func NewConsole(format string, items []Item) Console {
 		logrus.Fatal("unknown format")
 		return nil
 	}
-	return nil
 }
 
 type TextConsole struct {

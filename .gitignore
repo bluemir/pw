@@ -108,3 +108,4 @@ $RECYCLE.BIN/
 
 # End of https://www.gitignore.io/api/vim,windows,osx,linux,go
 build/
+runtime/
