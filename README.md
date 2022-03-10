@@ -25,6 +25,9 @@ pw run -e 'project =="pw1" && name endsWith "1"' -t gcloud-ssh -- echo hello
 
 ### Template
 
+### Shortcut Get
+
+### Shortcut Set
 
 ```
 pw -vvvv
@@ -39,4 +42,3 @@ pw del ar1w0101.ncc ar1w0102.ncc
 
 pw template ssh 'ssh {{.user}}@{{.name}} -C {{args}}'
 ```
-
