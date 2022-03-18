@@ -32,6 +32,9 @@ func main() {
 		SetOptions: backend.SetOptions{
 			Labels: map[string]string{},
 		},
+		RunOptions: backend.RunOptions{
+			Labels: map[string]string{},
+		},
 	}
 
 	if err := env.Set(conf); err != nil {
@@ -55,6 +58,8 @@ func main() {
 		StringVar(&conf.RunOptions.OutputFormat)
 	run.Flag("expr", "condition that filter items").Short('e').
 		StringVar(&conf.RunOptions.Expr)
+	run.Flag("label", "label that filter items, shortcut of `expr`. cannot use together").
+		StringMapVar(&conf.RunOptions.Labels)
 	run.Flag("shotcut", "expr shortcut. if exist '--expr' will be ignored").Short('s').
 		StringVar(&conf.RunOptions.ShortcutExprName)
 	run.Flag("templates", "running template").Short('t').

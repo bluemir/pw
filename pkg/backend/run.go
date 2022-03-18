@@ -14,6 +14,7 @@ import (
 
 type RunOptions struct {
 	Expr             string
+	Labels           map[string]string
 	ShortcutExprName string
 	Template         string
 	OutputFormat     string
@@ -22,7 +23,6 @@ type RunOptions struct {
 }
 
 func (backend *Backend) Run(opt *RunOptions) error {
-	//func (backend *Backend) Run(expr string, shortcut string, template string, outputFormat string, workerNum int, args []string) error {
 	inv, err := loadInventory(backend.invFilePath)
 	if err != nil {
 		return err
@@ -33,6 +33,9 @@ func (backend *Backend) Run(opt *RunOptions) error {
 		if v, ok := inv.Init().Shortcuts[opt.ShortcutExprName]; ok {
 			opt.Expr = v
 		}
+	}
+	if len(opt.Labels) > 0 && len(opt.Expr) > 0 {
+		return errors.Errorf("`expr` and `label` option cannot use together")
 	}
 
 	items, err := inv.ApplyExpr(opt.Expr)
