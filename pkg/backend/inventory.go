@@ -3,6 +3,7 @@ package backend
 import (
 	"io/ioutil"
 
+	"github.com/antonmedv/expr"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
@@ -59,7 +60,7 @@ func (inv *Inventory) init() *Inventory {
 	return inv
 }
 
-func (inv *Inventory) Take(name string) Item {
+func (inv *Inventory) GetItem(name string) Item {
 	logrus.Trace(inv, name)
 	for _, item := range inv.Items {
 		if item["name"] == name {
@@ -70,7 +71,32 @@ func (inv *Inventory) Take(name string) Item {
 	return map[string]string{"name": name}
 }
 
-func (inv *Inventory) Put(newItem Item) error {
+func (inv *Inventory) FindItem(e string) ([]Item, error) {
+	if e == "" {
+		e = "true"
+	}
+	program, err := expr.Compile(e)
+	if err != nil {
+		return nil, err
+	}
+
+	items := []Item{}
+	for _, item := range inv.Items {
+		output, err := expr.Run(program, item)
+		if err != nil {
+			return nil, err
+		}
+
+		if output.(bool) {
+			items = append(items, item)
+		}
+	}
+
+	logrus.Debug(items)
+
+	return items, nil
+}
+func (inv *Inventory) SetItem(newItem Item) error {
 	for _, item := range inv.Items {
 		if item["name"] == newItem["name"] {
 			for k, v := range newItem {
@@ -84,7 +110,7 @@ func (inv *Inventory) Put(newItem Item) error {
 
 	return nil
 }
-func (inv *Inventory) Delete(name string) {
+func (inv *Inventory) DeleteItem(name string) {
 	logrus.Trace(inv, name)
 	for i, item := range inv.Items {
 		if item["name"] == name {
@@ -92,4 +118,13 @@ func (inv *Inventory) Delete(name string) {
 			return
 		}
 	}
+}
+func (inv *Inventory) GetShortcut(name string) string {
+	return inv.Shortcuts[name]
+}
+func (inv *Inventory) DeleteShortcut(name string) {
+	delete(inv.Shortcuts, name)
+}
+func (inv *Inventory) SetShortcut(name string, expr string) {
+	inv.Shortcuts[name] = expr
 }

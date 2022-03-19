@@ -8,7 +8,7 @@ import (
 )
 
 func Register(cmd *kingpin.CmdClause, gOpts *global.Options) {
-	conf := backend.GetOptions{}
+	conf := backend.GetItemsOptions{}
 
 	cmd.Flag("output", "item display format").Short('o').
 		Default("name"). // name, yaml, json, wide

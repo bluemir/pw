@@ -26,7 +26,7 @@ func Register(cmd *kingpin.CmdClause, gOpts *global.Options) {
 		setCmd.Action(func(c *kingpin.ParseContext) error {
 			backend, _ := backend.New(gOpts.InventoryFile)
 
-			return backend.ShortcutSet(&conf)
+			return backend.SetShortcut(&conf)
 		})
 
 	}
@@ -40,7 +40,7 @@ func Register(cmd *kingpin.CmdClause, gOpts *global.Options) {
 
 			backend, _ := backend.New(gOpts.InventoryFile)
 
-			return backend.ShortcutDelete(&conf)
+			return backend.DeleteShortcut(&conf)
 		})
 	}
 }

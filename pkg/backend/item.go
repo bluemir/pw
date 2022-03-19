@@ -8,20 +8,20 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
-type GetOptions struct {
+type GetItemsOptions struct {
 	Expr         string
 	ShortcutName string
 	OutputFormat string
 }
 
-func (backend *Backend) GetItems(opt *GetOptions) error {
+func (backend *Backend) GetItems(opt *GetItemsOptions) error {
 	if opt.ShortcutName != "" {
 		if v, ok := backend.inv.Shortcuts[opt.ShortcutName]; ok {
 			opt.Expr = v
 		}
 	}
 
-	items, err := backend.inv.ApplyExpr(opt.Expr)
+	items, err := backend.inv.FindItem(opt.Expr)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (backend *Backend) GetItems(opt *GetOptions) error {
 		}
 		fmt.Println(string(buf))
 	default:
-		logrus.Fatal("output is one of (name, yaml)")
+		logrus.Fatal("output is one of (name, yaml, json)")
 	}
 
 	return nil
@@ -57,7 +57,7 @@ type SetOptions struct {
 
 func (backend *Backend) SetItems(opt *SetOptions) error {
 	for _, name := range opt.ItemNames {
-		item := backend.inv.Take(name)
+		item := backend.inv.GetItem(name)
 
 		for k, v := range opt.Labels {
 			if v == "-" {
@@ -67,7 +67,7 @@ func (backend *Backend) SetItems(opt *SetOptions) error {
 			}
 		}
 
-		if err := backend.inv.Put(item); err != nil {
+		if err := backend.inv.SetItem(item); err != nil {
 			return err
 		}
 	}
@@ -75,13 +75,13 @@ func (backend *Backend) SetItems(opt *SetOptions) error {
 	return backend.Save()
 }
 
-type DeleteOptions struct {
+type DeleteItemOptions struct {
 	ItemNames []string
 }
 
-func (backend *Backend) DeleteItems(opt *DeleteOptions) error {
+func (backend *Backend) DeleteItems(opt *DeleteItemOptions) error {
 	for _, name := range opt.ItemNames {
-		backend.inv.Delete(name)
+		backend.inv.DeleteItem(name)
 	}
 	return backend.Save()
 }

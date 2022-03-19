@@ -32,7 +32,7 @@ func (backend *Backend) Run(opt *RunOptions) error {
 		return errors.Errorf("`expr` and `label` option cannot use together")
 	}
 
-	items, err := backend.inv.ApplyExpr(opt.Expr)
+	items, err := backend.inv.FindItem(opt.Expr)
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,7 @@ import (
 
 func Register(cmd *kingpin.CmdClause, gOpts *global.Options) {
 	cmd = cmd.Alias("del").Alias("remove")
-	conf := backend.DeleteOptions{
+	conf := backend.DeleteItemOptions{
 		ItemNames: []string{},
 	}
 
