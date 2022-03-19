@@ -2,7 +2,7 @@
 ## Go Sources
 GO_SOURCES = $(shell find . -name "vendor"  -prune -o \
                             -type f -name "*.go" -print)
-build/$(BIN_NAME): $(GO_SOURCES) makefile
+build/$(BIN_NAME): $(GO_SOURCES) $(MAKEFILE_LIST)
 	@mkdir -p build
 	go fmt ./...
 	go vet ./...

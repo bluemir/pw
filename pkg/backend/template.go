@@ -9,14 +9,11 @@ type TemplateSetOptions struct {
 	Args []string
 }
 
-func (backend *Backend) TemplateSet(opt *TemplateSetOptions) error {
-	inv, _ := loadInventory(backend.invFilePath)
-	// ignore error
-	inv = inv.Init()
+func (backend *Backend) SetTemplate(opt *TemplateSetOptions) error {
 
-	inv.Templates[opt.Name] = strings.Join(opt.Args, " ")
+	backend.inv.Templates[opt.Name] = strings.Join(opt.Args, " ")
 
-	return saveInventory(inv, backend.invFilePath)
+	return backend.Save()
 }
 
 type TmeplateDelOptions struct {
@@ -24,11 +21,7 @@ type TmeplateDelOptions struct {
 }
 
 func (backend *Backend) TemplateDel(opt *TemplateSetOptions) error {
-	inv, _ := loadInventory(backend.invFilePath)
-	// ignore error
-	inv = inv.Init()
+	delete(backend.inv.Templates, opt.Name)
 
-	delete(inv.Templates, opt.Name)
-
-	return saveInventory(inv, backend.invFilePath)
+	return backend.Save()
 }

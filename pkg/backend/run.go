@@ -13,24 +13,18 @@ import (
 )
 
 type RunOptions struct {
-	Expr             string
-	Labels           map[string]string
-	ShortcutExprName string
-	Template         string
-	OutputFormat     string
-	WorkerNumber     int
-	Args             []string
+	Expr         string
+	Labels       map[string]string
+	ShortcutName string
+	Template     string
+	OutputFormat string
+	WorkerNumber int
+	Args         []string
 }
 
 func (backend *Backend) Run(opt *RunOptions) error {
-	inv, err := loadInventory(backend.invFilePath)
-	if err != nil {
-		return err
-	}
-	inv = inv.Init()
-
-	if opt.ShortcutExprName != "" {
-		if v, ok := inv.Init().Shortcuts[opt.ShortcutExprName]; ok {
+	if opt.ShortcutName != "" {
+		if v, ok := backend.inv.Shortcuts[opt.ShortcutName]; ok {
 			opt.Expr = v
 		}
 	}
@@ -38,7 +32,7 @@ func (backend *Backend) Run(opt *RunOptions) error {
 		return errors.Errorf("`expr` and `label` option cannot use together")
 	}
 
-	items, err := inv.ApplyExpr(opt.Expr)
+	items, err := backend.inv.ApplyExpr(opt.Expr)
 	if err != nil {
 		return err
 	}
@@ -51,7 +45,7 @@ func (backend *Backend) Run(opt *RunOptions) error {
 		opt.WorkerNumber = len(items)
 	}
 
-	t, ok := inv.Templates[opt.Template]
+	t, ok := backend.inv.Templates[opt.Template]
 	if !ok {
 		return errors.Errorf("template not found(name: '%s'. check inventory file", opt.Template)
 	}

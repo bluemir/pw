@@ -11,32 +11,23 @@ type ShortcutSetOptions struct {
 }
 
 func (backend *Backend) ShortcutSet(opt *ShortcutSetOptions) error {
-	inv, _ := loadInventory(backend.invFilePath)
-	// ignore error
-	inv = inv.Init()
-
-	// TODO vaildate
 	_, err := expr.Compile(opt.Expr)
 	if err != nil {
 		errors.Wrapf(err, "invalid expr")
 	}
-	inv.Shortcuts[opt.Name] = opt.Expr
+	backend.inv.Shortcuts[opt.Name] = opt.Expr
 
-	return saveInventory(inv, backend.invFilePath)
+	return backend.Save()
 }
 
 type ShortcutDelOptions struct {
 	Names []string
 }
 
-func (backend *Backend) ShortcutDel(opt *ShortcutDelOptions) error {
-	inv, _ := loadInventory(backend.invFilePath)
-	// ignore error
-	inv = inv.Init()
-
+func (backend *Backend) ShortcutDelete(opt *ShortcutDelOptions) error {
 	for _, name := range opt.Names {
-		delete(inv.Shortcuts, name)
+		delete(backend.inv.Shortcuts, name)
 	}
 
-	return saveInventory(inv, backend.invFilePath)
+	return backend.Save()
 }

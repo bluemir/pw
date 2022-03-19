@@ -5,7 +5,6 @@ IMPORT_PATH=$(shell cat go.mod | head -n 1 | awk '{print $$2}')
 BIN_NAME=$(notdir $(IMPORT_PATH))
 
 export GO111MODULE=on
-export GIT_TERMINAL_PROMPT=1
 
 default: build
 
