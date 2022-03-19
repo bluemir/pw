@@ -1,4 +1,4 @@
-package backend
+package inventory
 
 import (
 	"io/ioutil"
@@ -9,15 +9,16 @@ import (
 )
 
 type Inventory struct {
-	Items     []Item            `yaml:"items"`
-	Templates map[string]string `yaml:"templates"`
-	Shortcuts map[string]string `yaml:"shortcuts"`
+	Items     []Item             `yaml:"items"`
+	Templates map[string]Command `yaml:"templates"`
+	Shortcuts map[string]string  `yaml:"shortcuts"`
 }
 
 type Item map[string]string
+type Command []string
 
 // load inventory. if load failed return empty inventory
-func loadInventory(filename string) (*Inventory, error) {
+func Load(filename string) (*Inventory, error) {
 	inv := &Inventory{}
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -32,7 +33,7 @@ func loadInventory(filename string) (*Inventory, error) {
 	logrus.Tracef("inventory path: %s struct: %#v, ", filename, inv)
 	return inv.init(), nil
 }
-func (inv *Inventory) save(filename string) error {
+func (inv *Inventory) Save(filename string) error {
 	buf, err := yaml.Marshal(inv)
 	if err != nil {
 		return err
@@ -50,11 +51,11 @@ func (inv *Inventory) init() *Inventory {
 	}
 
 	if inv.Templates == nil {
-		inv.Templates = map[string]string{}
+		inv.Templates = map[string]Command{}
 	}
 
 	if _, ok := inv.Templates["default"]; !ok {
-		inv.Templates["default"] = "{{args}}"
+		inv.Templates["default"] = []string{"{{args}}"}
 	}
 
 	return inv
@@ -127,4 +128,14 @@ func (inv *Inventory) DeleteShortcut(name string) {
 }
 func (inv *Inventory) SetShortcut(name string, expr string) {
 	inv.Shortcuts[name] = expr
+}
+func (inv *Inventory) GetTemplate(name string) ([]string, bool) {
+	c, ok := inv.Templates[name]
+	return c, ok
+}
+func (inv *Inventory) SetTemplate(name string, args []string) {
+	inv.Templates[name] = args
+}
+func (inv *Inventory) DeleteTemplate(name string) {
+	delete(inv.Templates, name)
 }

@@ -22,11 +22,11 @@ test-run: build/$(BIN_NAME)
 	# log level: trace
 	@rm $(INVENTORY_FILE) || true
 	$< -vvvv
-	$< template echo 'echo {{args}}'
-	$< template ssh 'ssh -o "StrictHostKeyChecking=no" -n {{.user}}@{{.name}} -C {{args}}'
-	$< template scp 'scp "{{arg 1}}" {{.name}}:"{{arg 2}}"'
-	$< template rsh 'rsh -l {{.user}} {{.name}} {{args}}'
-	$< template gce 'gcloud compute --project "{{.project}}" ssh --zone "{{.zone}}" "{{.name}}"'
+	$< template echo -- echo {{args}}
+	$< template ssh -- ssh -o "StrictHostKeyChecking=no" -n {{.user}}@{{.name}} -C {{args}}
+	$< template scp -- scp "{{arg 1}}" {{.name}}:"{{arg 2}}"
+	$< template rsh -- rsh -l {{.user}} {{.name}} {{args}}
+	$< template gce -- gcloud compute --project "{{.project}}" ssh --zone "{{.zone}}" "{{.name}}"
 	$< set test1.node
 	$< set -l cluster=test test1.node test2.node
 	$< set -l role=worker -l rack=1 test1.node

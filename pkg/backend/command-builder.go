@@ -5,7 +5,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/mgutz/str"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,14 +13,11 @@ type CommandBuilder struct {
 	args  []string
 }
 
-func NewCommandBuilder(cmdTmpl string, args []string) (*CommandBuilder, error) {
+func NewCommandBuilder(tmplCommand []string, args []string) (*CommandBuilder, error) {
 	logrus.Tracef("args: %+v", args)
 
-	templateStrParts := str.ToArgv(cmdTmpl)
-	logrus.Tracef("templateStrParts: %+v", templateStrParts)
-
 	parts := []string{}
-	for _, part := range templateStrParts {
+	for _, part := range tmplCommand {
 		if strings.EqualFold(part, "{{args}}") {
 			parts = append(parts, args...)
 		} else {

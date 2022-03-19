@@ -2,15 +2,17 @@ package backend
 
 import (
 	"github.com/sirupsen/logrus"
+
+	"github.com/bluemir/pw/pkg/inventory"
 )
 
 type Backend struct {
 	invFilePath string
-	inv         *Inventory
+	inv         *inventory.Inventory
 }
 
 func New(invFilePath string) (*Backend, error) {
-	inv, err := loadInventory(invFilePath)
+	inv, err := inventory.Load(invFilePath)
 	if err != nil {
 		logrus.Warn("failed to load inventory")
 		// skip.. continue with empty inventory
@@ -22,5 +24,7 @@ func New(invFilePath string) (*Backend, error) {
 	}, err
 }
 func (backend *Backend) Save() error {
-	return backend.inv.save(backend.invFilePath)
+	return backend.inv.Save(backend.invFilePath)
 }
+
+type Item = inventory.Item

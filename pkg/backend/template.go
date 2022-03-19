@@ -1,27 +1,24 @@
 package backend
 
-import (
-	"strings"
-)
-
 type TemplateSetOptions struct {
 	Name string
 	Args []string
 }
 
 func (backend *Backend) SetTemplate(opt *TemplateSetOptions) error {
-
-	backend.inv.Templates[opt.Name] = strings.Join(opt.Args, " ")
+	backend.inv.SetTemplate(opt.Name, opt.Args)
 
 	return backend.Save()
 }
 
-type TmeplateDelOptions struct {
+type DeleteTemplateOptions struct {
 	Names []string
 }
 
-func (backend *Backend) TemplateDel(opt *TemplateSetOptions) error {
-	delete(backend.inv.Templates, opt.Name)
+func (backend *Backend) TemplateDel(opt *DeleteTemplateOptions) error {
+	for _, name := range opt.Names {
+		backend.inv.DeleteTemplate(name)
+	}
 
 	return backend.Save()
 }

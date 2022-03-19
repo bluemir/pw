@@ -45,7 +45,7 @@ func (backend *Backend) Run(opt *RunOptions) error {
 		opt.WorkerNumber = len(items)
 	}
 
-	t, ok := backend.inv.Templates[opt.Template]
+	t, ok := backend.inv.GetTemplate(opt.Template)
 	if !ok {
 		return errors.Errorf("template not found(name: '%s'. check inventory file", opt.Template)
 	}
