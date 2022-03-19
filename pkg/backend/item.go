@@ -50,12 +50,12 @@ func (backend *Backend) GetItems(opt *GetItemsOptions) error {
 	return nil
 }
 
-type SetOptions struct {
+type SetItemOptions struct {
 	ItemNames []string
 	Labels    map[string]string
 }
 
-func (backend *Backend) SetItems(opt *SetOptions) error {
+func (backend *Backend) SetItems(opt *SetItemOptions) error {
 	for _, name := range opt.ItemNames {
 		item := backend.inv.GetItem(name)
 

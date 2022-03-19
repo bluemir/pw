@@ -5,12 +5,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ShortcutSetOptions struct {
+type SetShortcutOptions struct {
 	Name string
 	Expr string
 }
 
-func (backend *Backend) SetShortcut(opt *ShortcutSetOptions) error {
+func (backend *Backend) SetShortcut(opt *SetShortcutOptions) error {
 	_, err := expr.Compile(opt.Expr)
 	if err != nil {
 		errors.Wrapf(err, "invalid expr")
@@ -20,11 +20,11 @@ func (backend *Backend) SetShortcut(opt *ShortcutSetOptions) error {
 	return backend.Save()
 }
 
-type ShortcutDelOptions struct {
+type DeleteShortcutOptions struct {
 	Names []string
 }
 
-func (backend *Backend) DeleteShortcut(opt *ShortcutDelOptions) error {
+func (backend *Backend) DeleteShortcut(opt *DeleteShortcutOptions) error {
 	for _, name := range opt.Names {
 		backend.inv.DeleteShortcut(name)
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func Register(cmd *kingpin.CmdClause, gOpts *global.Options) {
-	conf := backend.TemplateSetOptions{
+	conf := backend.SetTemplateOptions{
 		Name: "",
 		Args: []string{},
 	}

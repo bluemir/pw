@@ -1,11 +1,11 @@
 package backend
 
-type TemplateSetOptions struct {
+type SetTemplateOptions struct {
 	Name string
 	Args []string
 }
 
-func (backend *Backend) SetTemplate(opt *TemplateSetOptions) error {
+func (backend *Backend) SetTemplate(opt *SetTemplateOptions) error {
 	backend.inv.SetTemplate(opt.Name, opt.Args)
 
 	return backend.Save()
@@ -15,7 +15,7 @@ type DeleteTemplateOptions struct {
 	Names []string
 }
 
-func (backend *Backend) TemplateDel(opt *DeleteTemplateOptions) error {
+func (backend *Backend) DeleteTemplate(opt *DeleteTemplateOptions) error {
 	for _, name := range opt.Names {
 		backend.inv.DeleteTemplate(name)
 	}

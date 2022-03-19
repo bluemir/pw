@@ -17,7 +17,7 @@ func Register(cmd *kingpin.CmdClause, gOpts *global.Options) {
 	}
 	{
 		setCmd := cmd.Command("set", "set item")
-		conf := backend.ShortcutSetOptions{}
+		conf := backend.SetShortcutOptions{}
 
 		setCmd.Arg("name", "template name").
 			StringVar(&conf.Name)
@@ -32,7 +32,7 @@ func Register(cmd *kingpin.CmdClause, gOpts *global.Options) {
 	}
 	{
 		delCmd := cmd.Command("del", "delelete item").Alias("delete").Alias("remove")
-		conf := backend.ShortcutDelOptions{Names: []string{}}
+		conf := backend.DeleteShortcutOptions{Names: []string{}}
 
 		delCmd.Arg("template", "templates").Required().
 			StringsVar(&conf.Names)

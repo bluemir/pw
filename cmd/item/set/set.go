@@ -8,7 +8,7 @@ import (
 )
 
 func Register(cmd *kingpin.CmdClause, gOpts *global.Options) {
-	conf := backend.SetOptions{
+	conf := backend.SetItemOptions{
 		Labels:    map[string]string{},
 		ItemNames: []string{},
 	}
