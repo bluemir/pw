@@ -3,13 +3,13 @@ package backend
 import (
 	"context"
 	"os"
-	"os/exec"
 
 	"github.com/gammazero/workerpool"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/bluemir/pw/pkg/util/console"
+	"github.com/bluemir/pw/pkg/util/exec"
 )
 
 type RunOptions struct {
@@ -59,7 +59,6 @@ func (backend *Backend) Run(opt *RunOptions) error {
 	defer cancel()
 
 	wp := workerpool.New(opt.WorkerNumber)
-	// XXX support variant format
 	formatter := newOutputFomatter(items, opt.OutputFormat)
 
 	for _, item := range items {
@@ -92,20 +91,16 @@ func executeCommand(ctx context.Context, item Item, cout *console.Console, forma
 
 		cmd, err := commandBuilder.build(item)
 		if err != nil {
-			//TODO
 			logrus.Fatal(err)
 			return
 		}
 
 		logrus.Trace(cmd)
 
-		c := exec.CommandContext(ctx, cmd[0], cmd[1:]...)
-
-		// TODO support variant format
-		c.Stdout = cout.WithModifier(formatter.Modifier(item, "stdin"))
-		c.Stderr = cout.WithModifier(formatter.Modifier(item, "stdout"))
-
-		if err := c.Run(); err != nil {
+		if err := exec.Exec(ctx, cmd,
+			exec.WithStdout(cout.WithModifier(formatter.Modifier(item, "stdout"))),
+			exec.WithStderr(cout.WithModifier(formatter.Modifier(item, "stderr"))),
+		); err != nil {
 			logrus.Fatal(err)
 		}
 	}

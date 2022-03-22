@@ -70,15 +70,22 @@ func (c *Console) writeWithMutex(p []byte) (int, error) {
 	return c.output.Write(p)
 }
 func (c *Console) Close() error {
-	// flush
-	c.buf.WriteTo(c.output)
+	c.Flush()
 	return nil
+}
+func (c *Console) Flush() {
+	c.buf.WriteTo(c.output)
 }
 
 func (c *Console) WithPrefix(prefix string) *Console {
 	// share writer but print prefix each line.
 	return c.WithModifier(func(in string) string {
 		return prefix + in
+	})
+}
+func (c *Console) WithSuffix(subfix string) *Console {
+	return c.WithModifier(func(in string) string {
+		return in + subfix
 	})
 }
 func (c *Console) WithModifier(m Modifier) *Console {

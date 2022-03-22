@@ -1,9 +1,32 @@
 package backend
 
 import (
+	"fmt"
+
 	"github.com/antonmedv/expr"
 	"github.com/pkg/errors"
 )
+
+type GetShortcutOptions struct {
+	Names []string
+}
+
+func (backend *Backend) GetShortcut(conf *GetShortcutOptions) error {
+	if len(conf.Names) == 0 {
+		scs := backend.inv.GetShortcuts()
+		for k, v := range scs {
+			fmt.Printf("%s: %s", k, v)
+		}
+		return nil
+	}
+
+	for _, name := range conf.Names {
+		sc := backend.inv.GetShortcut(name)
+		fmt.Printf("%s: %s", name, sc)
+	}
+
+	return nil
+}
 
 type SetShortcutOptions struct {
 	Name string

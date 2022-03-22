@@ -37,6 +37,7 @@ func Run() error {
 		Short('v').
 		CounterVar(&conf.logLevel)
 	app.Flag("log-format", "Log format").
+		PlaceHolder("FORMAT").
 		StringVar(&conf.logFormat)
 	app.PreAction(func(*kingpin.ParseContext) error {
 		level := logrus.Level(conf.logLevel) + defaultLogLevel
@@ -67,11 +68,11 @@ func Run() error {
 		StringVar(&globalOpts.InventoryFile)
 
 	runCmd.Register(app.Command("run", "run command"), &globalOpts)
-	getCmd.Register(app.Command("get", "item"), &globalOpts)
-	setCmd.Register(app.Command("set", "item"), &globalOpts)
-	delCmd.Register(app.Command("delete", "item"), &globalOpts)
+	getCmd.Register(app.Command("get", "get item"), &globalOpts)
+	setCmd.Register(app.Command("set", "set item"), &globalOpts)
+	delCmd.Register(app.Command("delete", "delete item"), &globalOpts)
 	templateCmd.Register(app.Command("template", "set template"), &globalOpts)
-	shortcutCmd.Register(app.Command("shortcut", "set shortcut"), &globalOpts)
+	shortcutCmd.Register(app.Command("shortcut", "shortcut commands"), &globalOpts)
 
 	cmd, err := app.Parse(os.Args[1:])
 	if err != nil {
