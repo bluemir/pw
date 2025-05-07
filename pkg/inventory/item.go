@@ -1,7 +1,7 @@
 package inventory
 
 import (
-	"github.com/antonmedv/expr"
+	"github.com/expr-lang/expr"
 	"github.com/sirupsen/logrus"
 )
 

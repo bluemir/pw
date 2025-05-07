@@ -3,9 +3,9 @@ package cmd
 import (
 	"os"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/bluemir/pw/cmd/global"
 	delCmd "github.com/bluemir/pw/cmd/item/delete"
@@ -31,7 +31,7 @@ func Run() error {
 	globalOpts := global.Options{}
 
 	app := kingpin.New(buildinfo.AppName, describe)
-	app.Version(buildinfo.Version)
+	app.Version(buildinfo.Version + "/" + buildinfo.BuildTime)
 
 	app.Flag("verbose", "Log level").
 		Short('v').

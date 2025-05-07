@@ -1,9 +1,9 @@
 package run
 
 import (
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/bluemir/pw/cmd/global"
 	"github.com/bluemir/pw/pkg/backend"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func Register(cmd *kingpin.CmdClause, opts *global.Options) {

@@ -3,7 +3,7 @@ package backend
 import (
 	"fmt"
 
-	"github.com/antonmedv/expr"
+	"github.com/expr-lang/expr"
 	"github.com/pkg/errors"
 )
 
