@@ -101,7 +101,7 @@ func executeCommand(ctx context.Context, item Item, cout *console.Console, forma
 			exec.WithStdout(cout.WithModifier(formatter.Modifier(item, "stdout"))),
 			exec.WithStderr(cout.WithModifier(formatter.Modifier(item, "stderr"))),
 		); err != nil {
-			logrus.Fatal(err)
+			logrus.Error(err)
 		}
 	}
 }

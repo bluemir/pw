@@ -13,6 +13,8 @@ build: build/$(APP_NAME) ## Build web app
 test: fmt vet ## Run test
 	go test -v ./...
 
+export CGO_ENABLED=0
+
 build/$(APP_NAME): $(GO_SOURCES) $(MAKEFILE_LIST) fmt vet
 	@$(MAKE) build/tools/go
 	@mkdir -p build
