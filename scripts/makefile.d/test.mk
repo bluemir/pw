@@ -33,5 +33,11 @@ test-run: build/$(APP_NAME)
 	$< shortcut set rack-new 'name contains "rack07" || name contains "rack06"'
 	$< get -s rack-new
 	$< run -s rack-new -t echo -- 1
+	# multiple-line output
+	rm runtime/test-file || true
+	echo "1" >> runtime/test-file
+	echo "2" >> runtime/test-file
+	echo "3" >> runtime/test-file
+	$< run -s rack-new -- podman
 	@echo "================ Done =============="
 

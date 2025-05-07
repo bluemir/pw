@@ -1,7 +1,7 @@
 package inventory
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -19,7 +19,7 @@ type Command []string
 // load inventory. if load failed return empty inventory
 func Load(filename string) (*Inventory, error) {
 	inv := &Inventory{}
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		logrus.Debug("inventory file not found")
 		return inv.init(), err
@@ -38,7 +38,7 @@ func (inv *Inventory) Save(filename string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(filename, buf, 0644)
+	return os.WriteFile(filename, buf, 0644)
 }
 func (inv *Inventory) init() *Inventory {
 	if inv == nil {

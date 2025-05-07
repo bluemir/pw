@@ -63,10 +63,11 @@ type WideFormatter struct {
 
 func (c *WideFormatter) Modifier(item Item, from string) console.Modifier {
 	line := 0
+
 	return func(text string) string {
 		line++
 
-		return fmt.Sprintf("%s %05d %s | %s",
+		return fmt.Sprintf("%s %06d %s | %s",
 			str.PadLeft(item["name"], " ", c.max),
 			line,
 			from,

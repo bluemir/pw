@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/bluemir/pw/pkg/util/console"
@@ -25,7 +26,7 @@ func TestSimpleConsole(t *testing.T) {
 
 	console.Close()
 
-	assert.Equal(t, "aa", buf.String())
+	assert.Equal(t, "aa\n", buf.String())
 }
 func TestMultiLineConsole(t *testing.T) {
 	testCases := []string{
@@ -46,14 +47,14 @@ func TestMultiLineConsole(t *testing.T) {
 
 		console.Close()
 
-		assert.Equal(t, tc, buf.String())
+		assert.Equal(t, tc+"\n", buf.String()) // always has last \n
 
 	}
 }
 func TestWithPrefix(t *testing.T) {
 	testCases := map[string]string{
-		"aa":     "[hostname] aa",
-		"aa\nbb": "[hostname] aa\n[hostname] bb",
+		"aa":     "[hostname] aa\n",
+		"aa\nbb": "[hostname] aa\n[hostname] bb\n",
 	}
 	for tc, expect := range testCases {
 		buf := bytes.NewBuffer(nil)
@@ -74,6 +75,9 @@ func TestWithPrefix(t *testing.T) {
 	}
 }
 func TestWithMultiplePrefixedConsole(t *testing.T) {
+	logrus.SetReportCaller(true)
+	logrus.SetLevel(logrus.TraceLevel)
+
 	buf := bytes.NewBuffer(nil)
 
 	console := console.New(buf)
@@ -85,9 +89,10 @@ func TestWithMultiplePrefixedConsole(t *testing.T) {
 	hostA.Write([]byte("aa"))
 	hostB.Write([]byte("bb"))
 
-	console.Close()
+	hostA.Close()
+	hostB.Close()
 
-	assert.Equal(t, "[A] aa\n[B] bb", buf.String())
+	assert.Equal(t, "[A] aa\n[B] bb\n", buf.String())
 }
 func TestWithModifier(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
@@ -105,9 +110,9 @@ func TestWithModifier(t *testing.T) {
 
 	hostA.Write([]byte("aa"))
 
-	console.Close()
+	hostA.Close()
 
-	assert.Equal(t, `{"host":"A","msg":"aa"}`, buf.String())
+	assert.Equal(t, `{"host":"A","msg":"aa"}`+"\n", buf.String())
 }
 func TestWithModifierChaining(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
@@ -118,7 +123,7 @@ func TestWithModifierChaining(t *testing.T) {
 
 	console.Close()
 
-	assert.Equal(t, `[host]{server=api}aa`, buf.String())
+	assert.Equal(t, `[host]{server=api}aa`+"\n", buf.String())
 }
 func TestWithModifierHasState(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
@@ -133,5 +138,5 @@ func TestWithModifierHasState(t *testing.T) {
 
 	console.Close()
 
-	assert.Equal(t, "1 | aa\n2 | bb", buf.String())
+	assert.Equal(t, "1 | aa\n2 | bb\n", buf.String())
 }
